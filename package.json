@@ -4,7 +4,6 @@
   "version": "0.0.1",
   "dependencies": {
     "express.io": "*",
-    "opentok": "1.0.x",
-    "gl519": "git://github.com/dglittle/gl519.git#gh-pages"
+    "opentok": "1.0.x"
   }
 }
