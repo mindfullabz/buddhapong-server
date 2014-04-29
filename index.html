@@ -19,34 +19,46 @@ th, td {
 </head>
 <body>
 <script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
-<script src="/socket.io/socket.io.js"></script>
 <script src="http://dglittle.github.io/gl519/index.js"></script>
 <script>
 
-io = io.connect(location.href)
+var waitCount = 0
 
-$(function () {
+waitCount++
+var ws = new (WebSocket || MozWebSocket)(location.origin.replace(/^http/, 'ws'))
+ws.onopen = function() { waitCount--; main() }
+
+waitCount++
+$(function () { waitCount--; main() })
+
+function main() {
+	if (waitCount > 0) return
+
 	var input = $('<textarea style="width:400px;height:400px">')
 	var output = $('<textarea style="width:400px;height:400px">')
 	var read = $('<button/>').text('read').click(function () {
-		io.emit('read')
+		ws.send('')
 	})
 	var write = $('<button/>').text('write').click(function () {
-		io.emit('write', eval('(' + input.val() + ')'))
+		ws.send(_.json(eval('(' + input.val() + ')')))
 	})
+	ws.onmessage = function (e) {
+		output.val(_.json(_.unJson(e.data), true))
+	}
+	ws.onclose = function (e) {
+		output.val('SOCKET CLOSED')
+	}
+
 	var test = $('<button/>').text('test').click(function () {
-		io.emit('createSession', null, function (session) {
+		$.post('createSession', null, function (session) {
 			console.log('session: ' + session)
-			io.emit('createToken', session, function (token) {
+			$.post('createToken', session, function (token) {
 				console.log('token: ' + token)
 			})
 		})
 	})
-	io.on('billboard', function (b) {
-		output.val(_.json(b, true))
-	})
     $('body').append(input).append(output).append('<br/>').append(read).append(write).append(test)
-})
+}
 
 </script>
 

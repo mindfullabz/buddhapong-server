@@ -3,7 +3,8 @@
   "description": "nondescript",
   "version": "0.0.1",
   "dependencies": {
-    "express.io": "*",
+    "express": "*",
+    "ws": "*",
     "opentok": "1.0.x",
     "fibers" : "*"
   }
