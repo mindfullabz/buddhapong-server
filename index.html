@@ -1,0 +1,54 @@
+<html>
+<head>
+<meta charset='utf-8'>
+<title>untitled</title>
+<meta name="viewport" content="width=device-width, user-scalable=no">
+<style>
+
+body {
+    margin: 0px;
+}
+table {
+    border-collapse: collapse;
+}
+th, td {
+    padding: 0px;
+}
+
+</style>
+</head>
+<body>
+<script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
+<script src="/socket.io/socket.io.js"></script>
+<script src="http://dglittle.github.io/gl519/index.js"></script>
+<script>
+
+io = io.connect(location.href)
+
+$(function () {
+	var input = $('<textarea style="width:400px;height:400px">')
+	var output = $('<textarea style="width:400px;height:400px">')
+	var read = $('<button/>').text('read').click(function () {
+		io.emit('read')
+	})
+	var write = $('<button/>').text('write').click(function () {
+		io.emit('write', eval('(' + input.val() + ')'))
+	})
+	var test = $('<button/>').text('test').click(function () {
+		io.emit('createSession', null, function (session) {
+			console.log('session: ' + session)
+			io.emit('createToken', session, function (token) {
+				console.log('token: ' + token)
+			})
+		})
+	})
+	io.on('billboard', function (b) {
+		output.val(_.json(b, true))
+	})
+    $('body').append(input).append(output).append('<br/>').append(read).append(write).append(test)
+})
+
+</script>
+
+</body>
+</html>
