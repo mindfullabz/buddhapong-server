@@ -4,6 +4,7 @@
   "version": "0.0.1",
   "dependencies": {
     "express.io": "*",
-    "opentok": "1.0.x"
+    "opentok": "1.0.x",
+    "fibers" : "*"
   }
 }

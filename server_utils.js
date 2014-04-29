@@ -1,5 +1,5 @@
 
-var _ = require('gl519')
+var _ = require('./index.js')
 
 process.on('uncaughtException', function (err) {
     try {
