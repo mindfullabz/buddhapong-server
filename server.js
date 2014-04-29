@@ -6,7 +6,30 @@ try { require('./_config.js') } catch (e) {}
 _.run(function () {
     if (!process.env.PORT) process.env.PORT = 8080
 
+    sockets = {}
+    billboard = {}
+
+    var ws = require('sockjs').createServer()
+    ws.on('connection', function (s) {
+        var id = Math.random()
+        sockets[id] = s
+        billboard[id] = null
+        s.on('close', function () {
+            delete sockets[id]
+            delete billboard[id]
+        })
+
+        s.on('data', function (data) {
+            if (!data) return s.write(_.json(billboard))
+            billboard[id] = _.unJson(data)
+            var b = _.json(billboard)
+            _.each(sockets, function (s) { s.write(b) })
+        })
+    })
+
     var app = require('express')()
+    var server = require('http').createServer(app)
+    ws.installHandlers(server, { prefix : '/ws' })
 
     var OpenTok = require('opentok')
     var opentok = new OpenTok.OpenTokSDK(process.env.OPENTOK_KEY, process.env.OPENTOK_SECRET)
@@ -30,28 +53,7 @@ _.run(function () {
         res.sendfile(__dirname + '/index.html');
     })
 
-    var server = require('http').createServer(app)
     server.listen(process.env.PORT, function () {
         console.log("go to http://localhost:" + process.env.PORT)
-    })
-
-    sockets = {}
-    billboard = {}
-    var ws = new (require('ws').Server)({ server : server })
-    ws.on('connection', function (s) {
-        var id = Math.random()
-        sockets[id] = s
-        billboard[id] = null
-        s.on('close', function () {
-            delete sockets[id]
-            delete billboard[id]
-        })
-
-        s.on('message', function (data) {
-            if (!data) return s.send(_.json(billboard))
-            billboard[id] = _.unJson(data)
-            var b = _.json(billboard)
-            _.each(sockets, function (s) { s.send(b) })
-        })
     })
 })

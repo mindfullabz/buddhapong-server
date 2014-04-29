@@ -4,7 +4,7 @@
   "version": "0.0.1",
   "dependencies": {
     "express": "*",
-    "ws": "*",
+    "sockjs": "*",
     "opentok": "1.0.x",
     "fibers" : "*"
   }

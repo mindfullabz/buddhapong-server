@@ -20,12 +20,13 @@ th, td {
 <body>
 <script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
 <script src="http://dglittle.github.io/gl519/index.js"></script>
+<script src="http://cdn.sockjs.org/sockjs-0.3.min.js"></script>
 <script>
 
 var waitCount = 0
 
 waitCount++
-var ws = new (WebSocket || MozWebSocket)(location.origin.replace(/^http/, 'ws'))
+var ws = new SockJS(location.origin + '/ws')
 ws.onopen = function() { waitCount--; main() }
 
 waitCount++
