@@ -17,6 +17,8 @@ _.run(function () {
         s.on('close', function () {
             delete sockets[id]
             delete billboard[id]
+            var b = _.json(billboard)
+            _.each(sockets, function (s) { s.write(b) })
         })
 
         s.on('data', function (data) {
