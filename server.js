@@ -33,6 +33,13 @@ _.run(function () {
     var server = require('http').createServer(app)
     ws.installHandlers(server, { prefix : '/ws' })
 
+    app.use(function (req, res, next) {
+        _.run(function () {
+            req.body = _.consume(req)
+            next()
+        })
+    })
+
     var OpenTok = require('opentok')
     var opentok = new OpenTok.OpenTokSDK(process.env.OPENTOK_KEY, process.env.OPENTOK_SECRET)
 
@@ -46,8 +53,8 @@ _.run(function () {
         corsSend(req, res, opentok.generateToken({
             session_id : req.body,
             role : OpenTok.RoleConstants.PUBLISHER,
-            expire_time : _.time() + 1000*60*60*24,
-            connection_data : "hello world"
+            expire_time : Math.floor((_.time() + 1000*60*60*24*20)/1000),
+            connection_data : "hi"
         }))
     })
 
