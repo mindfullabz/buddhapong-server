@@ -46,7 +46,7 @@ _.run(function () {
         corsSend(req, res, opentok.generateToken({
             session_id : req.body,
             role : OpenTok.RoleConstants.PUBLISHER,
-            expire_time : _.time() + 1000*60*30,
+            expire_time : _.time() + 1000*60*60*24,
             connection_data : "hello world"
         }))
     })
