@@ -45,7 +45,8 @@ _.run(function () {
 
     app.post('/createSession', function (req, res) {
         _.run(function () {
-            corsSend(req, res, _.p(opentok.createSession('127.0.0.1', { 'p2p.preference' : 'enabled' }, _.p())))
+            // corsSend(req, res, _.p(opentok.createSession('127.0.0.1', { 'p2p.preference' : 'enabled' }, _.p())))
+            corsSend(req, res, _.p(opentok.createSession('127.0.0.1', _.p())))
         })
     })
 
