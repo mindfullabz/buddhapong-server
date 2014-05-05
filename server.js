@@ -28,14 +28,14 @@ _.run(function () {
 
             _.run(function () {
                 _.each(_.p(db.collection('numbers').find({ waitTime : { $exists : true } }, _.p())), function (number) {
-
-                    console.log('texting: ' + number._id)
-
-                    twilio.sendMessage({
-                        to : number._id,
-                        from : refinePhoneNumber(process.env.TWILIO_NUMBER),
-                        body : 'from http://mindfullabs.github.io/buddhapong : ' + msg.text.slice(0, 50)
-                    })
+                    if (!number.lastTime || _.time() > number.lastTime + number.waitTime) {
+                        twilio.sendMessage({
+                            to : number._id,
+                            from : refinePhoneNumber(process.env.TWILIO_NUMBER),
+                            body : 'from http://mindfullabs.github.io/buddhapong : ' + msg.text.slice(0, 50)
+                        })
+                        db.collection('numbers').update({ _id : number._id }, { $set : { lastTime : _.time() } })
+                    }
                 })
             })
         }
