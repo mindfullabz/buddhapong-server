@@ -42,7 +42,7 @@ _.run(function () {
 
         s.on('close', function () {
             delete sockets[id]
-            send('someone left')
+            // send('someone left')
         })
 
         s.on('data', function (data) {
