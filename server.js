@@ -32,7 +32,7 @@ _.run(function () {
 
         s.on('data', function (data) {
             if (!data) return s.write(_.json(messageHistory))
-            send(_.unJson(data).text)
+            send(_.unJson(data).text, true)
         })
     })
 
