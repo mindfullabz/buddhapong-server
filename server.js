@@ -74,7 +74,7 @@ _.run(function () {
     app.post('/addPhoneNumber', function (req, res) {
         _.run(function () {
             var number = refinePhoneNumber(req.body)
-            var verificationCode = 'x' + Math.floor(Math.random() * 1000000)
+            var verificationCode = '' + Math.floor(Math.random() * 1000000)
             _.p(db.collection('numbers').update({ _id : number }, { $set : { verificationCode : verificationCode } }, { upsert : true }, _.p()))
             _.p(twilio.sendMessage({
                 to : number,
@@ -90,7 +90,7 @@ _.run(function () {
             try {
                 var arg = _.unJson(req.body)
                 arg.number = refinePhoneNumber(arg.number)
-                arg.verificationCode = 'x' + arg.verificationCode
+                arg.verificationCode = '' + arg.verificationCode
 
                 if (!_.p(db.collection('numbers').findOne({ _id : arg.number, verificationCode : arg.verificationCode }, _.p()))) throw 'bad verification code'
 
