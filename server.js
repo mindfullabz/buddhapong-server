@@ -6,6 +6,8 @@ try { require('./_config.js') } catch (e) {}
 _.run(function () {
     if (!process.env.PORT) process.env.PORT = 8080
 
+    var db = require('mongojs')(process.env.MONGOHQ_URL)
+
     var messageHistory = []
     var sockets = {}
     var ws = require('sockjs').createServer()
@@ -18,10 +20,23 @@ _.run(function () {
             messageHistory.push(msg)
             if (messageHistory.length > 10) messageHistory.shift()
 
-            msg = _.json(msg)
+            var jmsg = _.json(msg)
             _.each(sockets, function (_s) {
                 if (_s != s || evenMe)
-                    _s.write(msg)
+                    _s.write(jmsg)
+            })
+
+            _.run(function () {
+                _.each(_.p(db.collection('numbers').find({ waitTime : { $exists : true } }, _.p())), function (number) {
+
+                    console.log('texting: ' + number._id)
+
+                    twilio.sendMessage({
+                        to : number._id,
+                        from : refinePhoneNumber(process.env.TWILIO_NUMBER),
+                        body : 'from http://mindfullabs.github.io/buddhapong : ' + msg.text.slice(0, 50)
+                    })
+                })
             })
         }
 
@@ -47,23 +62,44 @@ _.run(function () {
         })
     })
 
-    var OpenTok = require('opentok')
-    var opentok = new OpenTok.OpenTokSDK(process.env.OPENTOK_KEY, process.env.OPENTOK_SECRET)
+    var twilio = require('twilio')(process.env.TWILIO_SID, process.env.TWILIO_TOKEN)
 
-    app.post('/createSession', function (req, res) {
+    function refinePhoneNumber(number) {
+        number = number.replace(/\D/g, '')
+        if (number.length < 11) number = '1' + number
+        number = '+' + number
+        return number
+    }
+
+    app.post('/addPhoneNumber', function (req, res) {
         _.run(function () {
-            // corsSend(req, res, _.p(opentok.createSession('127.0.0.1', { 'p2p.preference' : 'enabled' }, _.p())))
-            corsSend(req, res, _.p(opentok.createSession('127.0.0.1', _.p())))
+            var number = refinePhoneNumber(req.body)
+            var verificationCode = 'x' + Math.floor(Math.random() * 1000000)
+            _.p(db.collection('numbers').update({ _id : number }, { $set : { verificationCode : verificationCode } }, { upsert : true }, _.p()))
+            _.p(twilio.sendMessage({
+                to : number,
+                from : refinePhoneNumber(process.env.TWILIO_NUMBER),
+                body : 'your buddha pong verification code is: ' + verificationCode
+            }, _.p()))
+            corsSend(req, res, number)
         })
     })
 
-    app.post('/createToken', function (req, res) {
-        corsSend(req, res, opentok.generateToken({
-            session_id : req.body,
-            role : OpenTok.RoleConstants.PUBLISHER,
-            expire_time : Math.floor((_.time() + 1000*60*60*24*20)/1000),
-            connection_data : "hi"
-        }))
+    app.post('/verifyPhoneNumber', function (req, res, next) {
+        _.run(function () {
+            try {
+                var arg = _.unJson(req.body)
+                arg.number = refinePhoneNumber(arg.number)
+                arg.verificationCode = 'x' + arg.verificationCode
+
+                if (!_.p(db.collection('numbers').findOne({ _id : arg.number, verificationCode : arg.verificationCode }, _.p()))) throw 'bad verification code'
+
+                _.p(db.collection('numbers').update({ _id : arg.number, verificationCode : arg.verificationCode }, { $set : { waitTime : arg.waitTime } }, _.p()))
+                corsSend(req, res, arg.number)
+            } catch (e) {
+                corsError(req, res, '' + e)
+            }
+        })
     })
 
     app.get('/', function (req, res) {

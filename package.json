@@ -5,7 +5,8 @@
   "dependencies": {
     "express": "*",
     "sockjs": "*",
-    "opentok": "1.0.x",
-    "fibers" : "*"
+    "fibers" : "*",
+    "mongojs" : "*",
+    "twilio" : "*"
   }
 }
