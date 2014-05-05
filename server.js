@@ -6,26 +6,33 @@ try { require('./_config.js') } catch (e) {}
 _.run(function () {
     if (!process.env.PORT) process.env.PORT = 8080
 
-    sockets = {}
-    billboard = {}
-
+    var messageHistory = []
+    var sockets = {}
     var ws = require('sockjs').createServer()
     ws.on('connection', function (s) {
         var id = Math.random()
         sockets[id] = s
-        billboard[id] = null
+
+        function send(msg, evenMe) {
+            msg = { text : msg, time : _.time() }
+            messageHistory.push(msg)
+            if (messageHistory.length > 10) messageHistory.shift()
+
+            msg = _.json(msg)
+            _.each(sockets, function (_s) {
+                if (_s != s || evenMe)
+                    _s.write(msg)
+            })
+        }
+
         s.on('close', function () {
             delete sockets[id]
-            delete billboard[id]
-            var b = _.json(billboard)
-            _.each(sockets, function (s) { s.write(b) })
+            send('someone left')
         })
 
         s.on('data', function (data) {
-            if (!data) return s.write(_.json(billboard))
-            billboard[id] = _.unJson(data)
-            var b = _.json(billboard)
-            _.each(sockets, function (s) { s.write(b) })
+            if (!data) return s.write(_.json(messageHistory))
+            send(_.unJson(data).text)
         })
     })
 

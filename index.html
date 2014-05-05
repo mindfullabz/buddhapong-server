@@ -41,24 +41,16 @@ function main() {
 		ws.send('')
 	})
 	var write = $('<button/>').text('write').click(function () {
-		ws.send(_.json(eval('(' + input.val() + ')')))
+		ws.send(_.json({ text : input.val() }))
 	})
 	ws.onmessage = function (e) {
-		output.val(_.json(_.unJson(e.data), true))
+		output.val(output.val() + '\n' + _.json(_.unJson(e.data), true))
 	}
 	ws.onclose = function (e) {
-		output.val('SOCKET CLOSED')
+		output.val(output.val() + '\n' + 'SOCKET CLOSED')
 	}
 
-	var test = $('<button/>').text('test').click(function () {
-		$.post('createSession', null, function (session) {
-			console.log('session: ' + session)
-			$.post('createToken', session, function (token) {
-				console.log('token: ' + token)
-			})
-		})
-	})
-    $('body').append(input).append(output).append('<br/>').append(read).append(write).append(test)
+    $('body').append(input).append(output).append('<br/>').append(read).append(write)
 }
 
 </script>
